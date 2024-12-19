@@ -8,7 +8,7 @@ const config = {
     // user: 'shatechno-proddev',
     // password: 'H$#787nMeAx',
 
-   // database: 'dev.shatechno',
+    //database: 'dev.shatechno',
     user: 'dev.shatechno',
     password: '7!jYo787n',
 

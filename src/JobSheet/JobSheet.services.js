@@ -135,10 +135,72 @@ module.exports = {
 
        console.log("createdDateInner", createdDate)
 
-      //let query = `Select CreatedBy,EntryTime ,ProjectTypeId,CompanyType,PhotoTypeId,JobId,ProjectName from MB_Jobsheet where CreatedBy = @user_id And CONVERT(DATE, EntryTime) = @createdDate order by Id`
-      let query = `Select CreatedBy,EntryTime ,ProjectTypeId,CompanyType,PhotoTypeId,JobId,ProjectName from MB_Jobsheet where CreatedBy = @user_id AND (CAST(EntryTime AS TIME) >= '20:00:00' OR CAST(EntryTime AS TIME) <= '07:59:59') OR (CAST(EntryTime AS TIME) >= '8:00:00' OR CAST(EntryTime AS TIME) <= '19:59:59') order by Id`
-       
-      request
+     //let query = `Select CreatedBy,EntryTime ,ProjectTypeId,CompanyType,PhotoTypeId,JobId,ProjectName from MB_Jobsheet where CreatedBy = @user_id And CONVERT(DATE, EntryTime) = @createdDate order by Id`
+        //let query = `Select CreatedBy,EntryTime ,ProjectTypeId,CompanyType,PhotoTypeId,JobId,ProjectName from MB_Jobsheet where CreatedBy = @user_id AND (CAST(EntryTime AS TIME) >= '20:00:00' OR CAST(EntryTime AS TIME) <= '07:59:59') OR (CAST(EntryTime AS TIME) >= '8:00:00' OR CAST(EntryTime AS TIME) <= '19:59:59') order by Id`
+        let query = `WITH FilteredData AS (
+    SELECT 
+        Id, CreatedBy, EntryTime, ProjectTypeId, CompanyType, PhotoTypeId, JobId, ProjectName
+    FROM 
+        MB_Jobsheet
+    WHERE 
+        CreatedBy = 1 
+        AND CONVERT(DATE, EntryTime) IN (@createdDate, DATEADD(DAY, -1, @createdDate))
+),
+FilteredDataToday AS (
+    SELECT 
+        Id, CreatedBy, EntryTime, ProjectTypeId, CompanyType, PhotoTypeId, JobId, ProjectName
+    FROM 
+        FilteredData
+    WHERE 
+        CONVERT(DATE, EntryTime) = @createdDate
+        AND (
+            CAST(EntryTime AS TIME) >= '00:00:00' 
+            AND CAST(EntryTime AS TIME) <= '23:59:59'
+        )
+),
+FilteredDataYesterday AS (
+    SELECT TOP 1 
+        Id, CreatedBy, EntryTime, ProjectTypeId, CompanyType, PhotoTypeId, JobId, ProjectName
+    FROM 
+        FilteredData
+    WHERE 
+        CONVERT(DATE, EntryTime) = DATEADD(DAY, -1, @createdDate)
+        AND CAST(EntryTime AS TIME) >= '20:00:00'
+        AND CAST(EntryTime AS TIME) <= '23:59:59'
+    ORDER BY 
+        EntryTime DESC
+)
+SELECT * FROM FilteredDataToday
+UNION
+SELECT * FROM FilteredDataYesterday;`
+
+/*let query = `WITH FilteredData AS (
+    SELECT 
+        Id, CreatedBy, EntryTime, ProjectTypeId, CompanyType, PhotoTypeId, JobId, ProjectName
+    FROM 
+        MB_Jobsheet
+    WHERE 
+        CreatedBy = 1 
+        AND (
+            CONVERT(DATE, EntryTime) = @createdDate
+            OR (CONVERT(DATE, EntryTime) = DATEADD(DAY, -1, @createdDate) 
+                AND CAST(EntryTime AS TIME) >= '20:00:00')
+        )
+)
+SELECT 
+    Id, CreatedBy, EntryTime, ProjectTypeId, CompanyType, PhotoTypeId, JobId, ProjectName
+FROM 
+    FilteredData
+WHERE 
+    CONVERT(DATE, EntryTime) = @createdDate
+    OR (
+        CONVERT(DATE, EntryTime) = DATEADD(DAY, -1, @createdDate)
+        AND CAST(EntryTime AS TIME) >= '20:00:00'
+    )
+ORDER BY 
+    CONVERT(DATE, EntryTime), EntryTime;`
+*/
+        request
         .input("user_id", user_id)
         .input("createdDate", createdDate.split(" ")[0])
       // .input("createdDate", moment().add(16, 'hours').format('YYYY-MM-DD HH:mm:ss'))
@@ -164,15 +226,13 @@ module.exports = {
             const currentHour = dateObject.getHours();
             const currentMinute = dateObject.getMinutes()
             const currentSecond = dateObject.getSeconds()
-            
-            //const currentMinutes = hours * 60 + minutes;
-            
+                                   
             //user enterstarttime after 8pm
             // if (currentHour >= 20) 
             if (currentHour > 20 || (currentHour === 20 && currentMinute >= 0 && currentSecond >= 0))
-            //if (currentHour > 20 || (currentHour < 8 && currentMinute >= 0 && currentSecond >= 0))         
+          //  if (currentHour > 20 || (currentHour < 8 && currentMinute >= 0 && currentSecond >= 0))         
              {
-              console.log("system time:",currentMinutes)
+              console.log("system time:",currentHour)
               return postCompanyMasterInsertFunction(CompanyType, ProjectType, PhotoType, Job, ProjectName, Location, ImageUpload[0].path, user_id, createdDate, request, callback, devisionId, drivers)
             } else {
               return callback(null, "Record exists");

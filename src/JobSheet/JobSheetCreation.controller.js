@@ -55,6 +55,7 @@ module.exports = {
 
     postCompanyMaster: (req, res) => {
         const data = req.body
+        console.log(data)
         postCompanyMaster(data, (err, result) => {
             if (err) {
                 return res.status(500).json({
