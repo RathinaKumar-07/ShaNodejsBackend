@@ -10,8 +10,8 @@ const { sendPushNotification } = require('../PushNotification/PushNotifiy');
 const postCompanyMasterInsertFunction = async (CompanyType, ProjectType, PhotoType, Job, ProjectName, Location, ImageUpload, user_id, createdDate, request, callback, devisionId, drivers) => {
   console.log("createdDate", createdDate)
 
-  let postquery = `insert into MB_Jobsheet (CompanyType,ProjectTypeId,PhotoTypeId,JobId,ProjectName,Location,ImageUpload,CreatedBy,createdDate,EntryTime,DivisionId) values (
-    @CompanyType, @projectTypeIdValue, @photoTypeIdvalue, @jobIdvalue, @ProjectName, @Location, @ImageUpload,@CreatedBy,@createdDateValue,@EntryTimeValue,@devisionId)`;
+  let postquery = `insert into MB_Jobsheet (CompanyType,ProjectTypeId,PhotoTypeId,JobId,ProjectName,Location,ImageUpload,CreatedBy,createdDate,EntryTime,DivisionId,Drivers) values (
+    @CompanyType, @projectTypeIdValue, @photoTypeIdvalue, @jobIdvalue, @ProjectName, @Location, @ImageUpload,@CreatedBy,@createdDateValue,@EntryTimeValue,@devisionId,@drivers)`;
 
   request
     .input('CompanyType', sql.VarChar(50), CompanyType)
@@ -26,7 +26,7 @@ const postCompanyMasterInsertFunction = async (CompanyType, ProjectType, PhotoTy
     .input("createdDateValue", moment().add(16, 'hours').format('YYYY-MM-DD HH:mm:ss'))
     .input("EntryTimeValue", createdDate)
     .input("devisionId", sql.Int, devisionId)
-  // .input("drivers", sql.VarChar(100), drivers)
+   .input("drivers", sql.VarChar(100), drivers)
 
 
   const response = await request.query(postquery);

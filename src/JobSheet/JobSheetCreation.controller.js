@@ -93,7 +93,7 @@ module.exports = {
             else if (result == "Enter Different ProjectName") {
                 return res.status(403).json({
                     success: 0,
-                    message: "Plese select the valid project Type"
+                    message: "Plese select the Correct project Type"
                 })
             }
 
