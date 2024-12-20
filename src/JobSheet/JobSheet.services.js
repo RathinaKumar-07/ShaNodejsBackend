@@ -143,7 +143,7 @@ module.exports = {
     FROM 
         MB_Jobsheet
     WHERE 
-        CreatedBy = 1 
+        CreatedBy =  @user_id
         AND CONVERT(DATE, EntryTime) IN (@createdDate, DATEADD(DAY, -1, @createdDate))
 ),
 FilteredDataToday AS (
