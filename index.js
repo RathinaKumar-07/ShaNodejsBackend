@@ -23,7 +23,7 @@ app.use("/images", express.static("uploads"));
 
 app.get('/', (req, res) => {
     res.json({
-        message: "Server is Working"
+        message: "Working"
     })
 })
 
