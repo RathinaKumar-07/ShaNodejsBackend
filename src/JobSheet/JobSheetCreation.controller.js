@@ -1,5 +1,5 @@
 const { param } = require("./JobSheet.routes")
-const { getSelectedProductTypeMaster, getJobSheet, getProjectDetails, postCompanyMaster, getJobSheetDataDateBetween, getDevisionDropdown, getJobsheetByDivisionID } = require("./JobSheet.services")
+const { getSelectedProductTypeMaster, getJobSheet,getJobSheetId, getProjectDetails, postCompanyMaster, getJobSheetDataDateBetween, getDevisionDropdown, getJobsheetByDivisionID,postJobsheetId } = require("./JobSheet.services")
 
 
 module.exports = {
@@ -36,6 +36,64 @@ module.exports = {
             })
         })
     },
+    getJobSheetId: (req, res) => {
+        const params = req.params
+        getJobSheetId(params,(err, result) => {
+            if (err) {
+                return res.status(500).json({
+                    success: 0,
+                    message: "Internal Server Error",
+                    err: err
+                })
+            }
+            return res.status(200).json({
+                success: 1,
+                data: result
+            })
+        })
+    },
+// new post add start
+postJobsheetId: (req, res) => {
+    const data = req.body;
+    console.log(data);
+
+    postJobsheetId(data, (err, result) => {
+        if (err) {
+            return res.status(500).json({
+                success: 0,
+                message: "Internal Server Error",
+                err: err.message || err,
+            });
+        }
+
+        switch (result) {
+            case "Missing required fields":
+                return res.status(400).json({
+                    success: 0,
+                    message: "All required fields must be provided (DivisionId, JobId, Location, EntryTime, IsActive, CreatedBy, CreatedDate)",
+                });
+
+            // case "Duplicate record":
+            //     return res.status(409).json({
+            //         success: 0,
+            //         message: "A record with the same JobId and DivisionId already exists",
+            //     });
+
+            case 1:
+                return res.status(201).json({
+                    success: 1,
+                    message: "Job entry successfully added",
+                });
+
+            default:
+                return res.status(500).json({
+                    success: 0,
+                    message: "backend server error",
+                });
+        }
+    })
+},
+//new post add end
 
     getProjectDetails: (req, res) => {
         getProjectDetails((err, result) => {

@@ -109,7 +109,57 @@ module.exports = {
       return callback(err)
     }
   },
+  getJobSheetId: async (params, callback) => {
 
+    try {
+      const userid = Number(params.id)
+      const request = model.db.request();
+      let query = `SELECT 
+        d.DivisionName,
+        m.JobSheetId,
+        j.Location 
+      FROM MB_JobIdEntry j
+      INNER JOIN DivisionMaster d ON j.DivisionId = d.DivisionId 
+	  INNER JOIN JobSheetMaster m ON j.JobId = m.JobSheetMasterId
+	  INNER JOIN UserMasterDetail u ON u.Userid = j.CreatedBy
+      WHERE u.Userid =@Userid and 
+        j.IsActive = 1`;
+        request.input('Userid', sql.Int, userid);
+        const response = await request.query(query);
+      return callback(null, response.recordset);
+    } catch (err) {
+      return callback(err)
+    }
+  },
+// new add jobsheetId start
+postJobsheetId : async (data, callback) => {
+  try {
+      const { DivisionId, JobId, Location, EntryTime, CreatedBy } = data;
+      // Validate required fields
+      if (!DivisionId || !JobId || !Location || !EntryTime || !CreatedBy) {
+          return callback(null, "Missing required fields");
+      }
+      const request = model.db.request();
+      // Insert record into the table with default values for CreatedDate and IsActive
+      const insertQuery = `INSERT INTO MB_JobIdEntry (DivisionId, JobId, Location, EntryTime, IsActive, CreatedBy, CreatedDate)
+          VALUES (@DivisionId, @JobId, @Location, @EntryTime, 1, @CreatedBy, GETDATE())`;
+      request
+          .input("DivisionId", DivisionId)
+          .input("JobId", JobId)
+          .input("Location", Location)
+          .input("EntryTime", EntryTime)
+          .input("CreatedBy", CreatedBy);
+
+      await request.query(insertQuery);
+
+      return callback(null, 1); // Success response
+  } catch (err) {
+      //console.error("Error in service:", err);
+      console.log(err)
+      return callback(err)
+  }
+},
+// new add jobsheetId end
   getProjectDetails: async (callback) => {
     try {
       const request = model.db.request();
